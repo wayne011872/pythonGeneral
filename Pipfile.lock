@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "605872255704d6eb1eaf89c33dc2d3f7888633ad6b78745902cc26162df0fc3e"
+            "sha256": "6f91788fc8088e21b559c6b2d7acf9c82e0df7f6d3a8dde793d2c9604c86f02f"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -179,6 +179,10 @@
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.8.2"
+        },
+        "pythongeneral": {
+            "editable": true,
+            "path": "."
         },
         "pytz": {
             "hashes": [
