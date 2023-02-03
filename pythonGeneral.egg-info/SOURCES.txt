@@ -1,7 +1,12 @@
-pyproject.toml
 setup.py
+pythonGeneral/__init__.py
 pythonGeneral.egg-info/PKG-INFO
 pythonGeneral.egg-info/SOURCES.txt
 pythonGeneral.egg-info/dependency_links.txt
 pythonGeneral.egg-info/requires.txt
 pythonGeneral.egg-info/top_level.txt
+pythonGeneral/dataProcessing/__init__.py
+pythonGeneral/dataProcessing/pandas.py
+pythonGeneral/dataProcessing/string.py
+pythonGeneral/database/__init__.py
+pythonGeneral/database/mongo.py
