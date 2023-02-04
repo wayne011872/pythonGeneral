@@ -1,7 +1,2 @@
 pymongo
 pandas
-bs4
-openpyxl
-fake-useragent
-requests
-urllib3

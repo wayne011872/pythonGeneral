@@ -2,12 +2,19 @@ import pymongo
 import configparser
 
 class mon:
-    def __init__(self,initFileAddress):
+    def __init__(self,initFileAddress,databaseName=None,collectionName=None):
         config = configparser.ConfigParser()
         config.read(initFileAddress+"config.ini")
         self.myClient = pymongo.MongoClient("mongodb://"+config['mongodb']['server']+":"+config['mongodb']['port']+"/")
-        self.myDB = self.myClient[config['mongodb']['database']]
-        self.myCollection = self.myDB[config['mongodb']['collection']]
+        if databaseName:
+            self.myDB = self.myClient[databaseName]
+        else:
+            self.myDB = self.myClient[config['mongodb']['database']]
+        
+        if collectionName:
+            self.myCollection = self.myDB[collectionName]
+        else:
+            self.myCollection = self.myDB[config['mongodb']['collection']]
 
     def insertOneData(self, data):
         self.myCollection.insert_one(data)

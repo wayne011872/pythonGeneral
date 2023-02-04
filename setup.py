@@ -6,11 +6,6 @@ setup(
     packages = find_packages(),
     install_requires = [
         'pymongo',
-        'pandas',
-        'bs4',
-        'openpyxl',
-        'fake-useragent',
-        'requests',
-        'urllib3'
+        'pandas'
     ],
 )

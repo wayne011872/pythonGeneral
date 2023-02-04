@@ -10,3 +10,5 @@ pythonGeneral/dataProcessing/pandas.py
 pythonGeneral/dataProcessing/string.py
 pythonGeneral/database/__init__.py
 pythonGeneral/database/mongo.py
+pythonGeneral/log/__init__.py
+pythonGeneral/log/logging.py
