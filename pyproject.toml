@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "pythongeneral"
+version = "0.1.0"
+description = ""
+authors = ["wayne011872 <wayne011872@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^1.5.3"
+orjson = "^3.8.7"
+pymongo = "^4.3.3"
+toml = "^0.10.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

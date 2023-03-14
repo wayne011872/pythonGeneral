@@ -7,8 +7,30 @@ numSubDict = {
     '８': '8', '９': '9', '壹': '1', '貳': '2', '參': '3', '肆': '4',
     '伍': '5', '陆': '6', '柒': '7', '捌': '8', '玖': '9'
 }
+charSubDict = {
+    '臺' : '台'
+}
 
-
+cityCodeDict = {
+    "台北" : "02",
+    "桃園" : "03",
+    "新竹" : "03",
+    "花蓮" : "03",
+    "宜蘭" : "03",
+    "苗栗" : "037",
+    "台中" : "04",
+    "彰化" : "04",
+    "南投" : "049",
+    "嘉義" : "05",
+    "雲林" : "05",
+    "台南" : "06",
+    "澎湖" : "06",
+    "高雄" : "07",
+    "屏東" : "08",
+    "台東" : "089"
+}
+cityThreeLenList = ["苗栗","南投","台東"]
+cityPhoneNumTenList = ["台北","台中","南投"]
 class reString:
     regex = ""
 
@@ -36,7 +58,9 @@ class reString:
     def deleteManyChar(self, deleteCharList: list):
         for deleteChar in deleteCharList:
             self.processStr = re.sub(deleteChar, r"", self.processStr)
-
+    def splitChar(self,splitChar,getIndex):
+        return str(self.processStr.split(splitChar)[getIndex])
+    
     def insertChar(self, insertIndex: int, insertChar: str):
         insertStrList = list(self.processStr)
         insertStrList.insert(insertIndex, insertChar)
@@ -61,6 +85,67 @@ class reString:
     
     def turnChiNumberToNumber(self):
         self.substituteManyString(numSubDict)
+    
+    def deleteNotMatchCity(self,city,codeLen):
+        for c in cityCodeDict:
+            if c in city:
+                if codeLen == 3:
+                    if cityCodeDict[c] == self.processStr[0:3]:
+                        return True
+                else:
+                    if cityCodeDict[c] == self.processStr[0:2]:
+                        return True
+        self.processStr = ""
+        return False
+    
+    def processPhoneNum(self,city):
+        isThreeCodeCity = False
+        isPhoneNumTenCity = False
+        self.getNumberString()
+        if self.processStr == "":
+            return
+        if self.getProcessString()[0:3] == "886":
+            self.substituteOneString("886","09")
+        if self.getProcessString()[0:2] == "09":
+            self.insertChar(4,"-")
+            self.insertChar(-3,"-")
+            return
+        for ci in cityPhoneNumTenList:
+            if ci in city:
+                isPhoneNumTenCity = True
+        for ci in cityThreeLenList:
+            if ci in city:
+                isThreeCodeCity = True
+        if isPhoneNumTenCity:
+            if len(self.getProcessString()) == 8:
+                self.processStr = cityCodeDict[city]+self.processStr
+            if len(self.getProcessString())<10:
+                self.processStr = ""
+                return
+            self.insertChar(6, "-")
+            if len(self.getProcessString()) > 11:
+                self.insertChar(11, "#")
+        else:
+            if len(self.getProcessString()) == 7:
+                self.processStr = cityCodeDict[city]+self.processStr
+            if len(self.getProcessString())<9:
+                self.processStr = ""
+                return
+            self.insertChar(5, "-")
+            if len(self.getProcessString()) > 10:
+                self.insertChar(10, "#")
+        if isThreeCodeCity:
+            isMatched = self.deleteNotMatchCity(city,3)
+            if isMatched:
+                self.insertChar(3,"-")
+            else:
+                return
+        else:
+            isMatched = self.deleteNotMatchCity(city,2)
+            if isMatched:
+                self.insertChar(2, "-")
+            else:
+                return
             
     def getOriginString(self):
         return self.originStr

@@ -1,6 +1,8 @@
 import pandas as pd
 import pythonGeneral.dataProcessing.string as pds
+import pythonGeneral.database.mongo as pdm
 import os
+import orjson
 
 class df_data:
     def __init__(self, path_settings=None, useColumns=None):
@@ -29,12 +31,12 @@ class df_data:
         }
 
     def setImportDf(self, useColumns):
-        if self.path_settings["importFile"].split('.')[1] == 'xlsx':
+        if str(self.path_settings["importFile"]).split('.')[1] == 'xlsx':
             self.df = pd.DataFrame(pd.read_excel(
                 self.path_settings["importDir"]+self.path_settings["importFile"], usecols=useColumns))
-        elif self.path_settings["importFile"].split('.')[1] == 'csv':
+        elif str(self.path_settings["importFile"]).split('.')[1] == 'csv':
             self.df = pd.DataFrame(pd.read_csv(
-                self.path_settings["importDir"]+self.path_settings["importFile"], usecols=useColumns))
+                self.path_settings["importDir"]+self.path_settings["importFile"], usecols=useColumns, error_bad_lines=False))
         else:
             self.df = pd.DataFrame(columns=useColumns)
 
@@ -79,6 +81,12 @@ class df_data:
             d.substituteManyString(subDict)
             self.df.at[i, subColumn] = d.processStr
     
+    def processPhoneNum(self,phoneNumColumn,addressColumn):
+        for i in range(len(self.df)):
+            d = pds.reString(str(self.df.at[i,phoneNumColumn]))
+            d.processPhoneNum(str(self.df.at[i,addressColumn])[0:2])
+            self.df.at[i,phoneNumColumn] = d.processStr
+    
     def processRegexString(self,regex:str,processColumn:str):
         for i in range(len(self.df)):
             d = pds.reString(str(self.df.at[i, processColumn]))
@@ -90,24 +98,62 @@ class df_data:
             d = pds.reString(str(self.df.at[i,deleteStrColumn]))
             d.deleteSpace()
             self.df.at[i,deleteStrColumn] = d.processStr
-
-    def dataToTPSData(self):
+    
+    def dataToJson(self,index,transferColumns:list):
+        self.dataDict = {}
+        for j in transferColumns:
+            self.dataDict[j] = self.df.at[index,j]
+        self.dataJson = orjson.dumps(self.dataDict)
+        
+    def dataToGeoDict(self, transferColumns, index, xColumn, yColumn):
+        self.dataDict = {}
+        locationDict = {}
+        locationDict["type"] = "Point"
+        locationDict["coordinates"] = [
+            float(self.df.at[index, xColumn]), float(self.df.at[index, yColumn])]
+        for j in transferColumns:
+            self.dataDict[transferColumns[j]] = str(self.df.at[index,j])
+        self.dataDict["location"] = locationDict
+        
+    def jsonToData(self,index,jsonData):
+        self.dataDict = orjson.loads(jsonData)
+        for j in self.dataDict:
+            self.df.at[index,j] = self.dataDict[j]
+        
+    def dataToTPSData(self,remarkColumns:list):
         for i in range(len(self.df)):
-            self.df.at[i, '資本額'] = (str(self.df.at[i, '資本額']) + ", 工廠登記編號:"+str(self.df.at[i, '工廠登記編號'])
-                                    + ",產業類別:"+str(self.df.at[i, '產業類別'])+",主要產品:"+str(self.df.at[i, '主要產品'])+",網址:"+str(self.df.at[i, '網址']))
-
-    def mergeData(self, dfRight, mergeSettings):
+            capitalData = str(self.df.at[i, '資本額'])
+            for col in remarkColumns:
+                capitalData = "{0},{1}:{2}".format(capitalData,col,self.df.at[i,col])
+                capitalDataRe = pds.reString(capitalData)
+                capitalDataRe.deleteString("nan")
+                capitalData = capitalDataRe.getProcessString()
+            self.df.at[i,'資本額'] = capitalData
+    
+    def leftMergeData(self, dfRight, mergeSettings):
         self.set_mergeSettings(mergeSettings=mergeSettings)
         self.df = self.df.merge(
             right=dfRight.df,
             how="left",
-            on=self.mergeSettings["mergeOnList"],
-            indicator=True
+            on=self.mergeSettings["mergeOnList"]
         )
         if self.mergeSettings["dropList"] != None:
             self.df.drop(self.mergeSettings["dropList"], axis=1, inplace=True)
         if self.mergeSettings["renameDict"] != None:
             self.df.rename(columns=self.mergeSettings["renameDict"], inplace=True)
+            
+    def innerMergeData(self, dfRight, mergeSettings):
+        self.set_mergeSettings(mergeSettings=mergeSettings)
+        self.df = self.df.merge(
+            right=dfRight.df,
+            how="inner",
+            on=self.mergeSettings["mergeOnList"]
+        )
+        if self.mergeSettings["dropList"] != None:
+            self.df.drop(self.mergeSettings["dropList"], axis=1, inplace=True)
+        if self.mergeSettings["renameDict"] != None:
+            self.df.rename(
+                columns=self.mergeSettings["renameDict"], inplace=True)
 
     def toFile(self):
         if self.path_settings["exportFile"].split('.')[1] == 'csv':
@@ -120,15 +166,15 @@ class df_data:
             print("沒有設定exportFile或exportDir")
 
 
-def concatDirData(importDir, exportFile):
+def concatDirData(path_settings):
     dfTotal = pd.DataFrame()
-    for importFile in os.listdir(importDir):
-        data = df_data({"importDir": importDir,
+    for importFile in os.listdir(path_settings["importDir"]):
+        data = df_data({"importDir": path_settings["importDir"],
                         "importFile": importFile,
-                        "exportDir": importDir,
-                        "exportFile": exportFile})
+                        "exportDir": path_settings["exportDir"],
+                        "exportFile": path_settings["exportFile"]})
         dfTotal = pd.concat([dfTotal, data.df])
-    dfTotal.to_excel(importDir+exportFile, index=False)
+    dfTotal.to_excel(path_settings["exportDir"]+path_settings["exportFile"], index=False)
 
 def concatFileData(exportPath, *concatDf):
     dfTotal = pd.DataFrame()

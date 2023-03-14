@@ -1,10 +1,9 @@
 import pymongo
-import configparser
+import toml
 
 class mon:
     def __init__(self,initFileAddress,databaseName=None,collectionName=None):
-        config = configparser.ConfigParser()
-        config.read(initFileAddress+"config.ini")
+        config = toml.load(initFileAddress+"config.toml")
         self.myClient = pymongo.MongoClient("mongodb://"+config['mongodb']['server']+":"+config['mongodb']['port']+"/")
         if databaseName:
             self.myDB = self.myClient[databaseName]
@@ -23,19 +22,36 @@ class mon:
         self.myCollection.insert_many(data)
 
     def findOneData(self, data):
-        self.myCollection.find_one(data)
+        findData = self.myCollection.find_one(data)
+        return findData
 
     def findManyData(self, data):
-        self.myCollection.find(data)
+        findData = self.myCollection.find(data)
+        return findData
 
     def findAllData(self):
-        self.myCollection.find()
+        findData = self.myCollection.find()
+        return findData
     
-    def updateOneData(self,data):
-        self.myCollection.update_one(data)
+    def findGeometryData(self,findCoordinate,findDistance):
+        findDict = {}
+        location = {}
+        nearSphere = {}
+        geometry = {}
+        geometry["type"] = "Point"
+        geometry["coordinates"] = findCoordinate
+        nearSphere["$geometry"] = geometry
+        nearSphere["$maxDistance"] = findDistance
+        location["$nearSphere"] = nearSphere
+        findDict["location"] = location
+        findData = self.myCollection.find(findDict)
+        return findData
+    
+    def updateOneData(self,findData,updateData):
+        self.myCollection.update_one(findData,updateData)
         
-    def updateManyData(self,data):
-        self.myCollection.update_many(data)
+    def updateManyData(self,findData,updateData):
+        self.myCollection.update_many(findData,updateData)
     
     def deleteOneData(self,data):
         self.myCollection.delete_one(data)
