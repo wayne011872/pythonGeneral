@@ -3,11 +3,9 @@ import toml
 import smtplib
 
 class MyMail:
-    def __init__(self,emailTitle,emailContent):
+    def __init__(self):
         self.getConfig()
         self.setEmailMessage()
-        self.setMailTitle(emailTitle)
-        self.setMailContent(emailContent)
         self.setSMTPServer()
             
     def setEmailMessage(self):
