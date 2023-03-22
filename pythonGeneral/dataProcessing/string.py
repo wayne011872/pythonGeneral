@@ -13,6 +13,7 @@ charSubDict = {
 
 cityCodeDict = {
     "台北" : "02",
+    "新北" : "02",
     "桃園" : "03",
     "新竹" : "03",
     "花蓮" : "03",
@@ -30,7 +31,7 @@ cityCodeDict = {
     "台東" : "089"
 }
 cityThreeLenList = ["苗栗","南投","台東"]
-cityPhoneNumTenList = ["台北","台中","南投"]
+cityPhoneNumTenList = ["台北","新北","台中","南投"]
 class reString:
     regex = ""
 
@@ -82,6 +83,13 @@ class reString:
         for chr in processObj:
             processStr += chr.group()
         self.processStr = processStr
+    
+    def processAddressString(self):
+        if ("市" not in self.originStr) and ("縣" not in self.originStr):
+            self.processStr = ""
+            return
+        else:
+            self.processRegexString("..市..*|..縣..*")
     
     def turnChiNumberToNumber(self):
         self.substituteManyString(numSubDict)
